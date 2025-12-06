@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=./recipe.json # FIX: Changed to local path for reliable validation
+# yaml-language-server: $schema=./recipe.json # Using local schema
 name: ShardOS
 description: Specialized host image for high-performance VMs and containers with dGPU passthrough and Image Building capabilities.
 
@@ -14,7 +14,7 @@ modules:
         destination: /
 
   # 2. ADD EXTERNAL REPOSITORIES (RPM Fusion)
-  - type: rpm
+  - type: rpm-ostree # FIX: Changed to rpm-ostree
     install:
       - https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
       - https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
@@ -25,107 +25,110 @@ modules:
       # Starship COPR
       copr:
         - atim/starship
-    install:
-      # CORE & USER TOOLS
-      - ublue-update
-      - micro
-      - starship
-      
-      # VIRTUALIZATION & KVM
-      - qemu-kvm
-      - libvirt
-      - libvirt-client
-      - libvirt-daemon-kvm
-      - libvirt-daemon-config-network
-      - virt-install
-      - edk2-ovmf
-      - virt-viewer
-      
-      # CONTAINER MANAGEMENT
-      - podman
-      - skopeo
-      - buildah
-      - podman-compose
-      - podman-docker
-      - containers-tools
+    packages: # FIX: Added 'packages' key for dnf module structure
+      install:
+        # CORE & USER TOOLS
+        - ublue-update
+        - micro
+        - starship
+        
+        # VIRTUALIZATION & KVM
+        - qemu-kvm
+        - libvirt
+        - libvirt-client
+        - libvirt-daemon-kvm
+        - libvirt-daemon-config-network
+        - virt-install
+        - edk2-ovmf
+        - virt-viewer
+        
+        # CONTAINER MANAGEMENT
+        - podman
+        - skopeo
+        - buildah
+        - podman-compose
+        - podman-docker
+        - containers-tools
 
-      # MULTIMEDIA/CODECS (Requires RPM Fusion)
-      - libavcodec-freeworld
+        # MULTIMEDIA/CODECS (Requires RPM Fusion)
+        - libavcodec-freeworld
 
-      # SYSTEM MANAGEMENT, MONITORING, & TUNING
-      - cockpit
-      - cockpit-machines 
-      - cockpit-podman
-      - cockpit-files
-      - cockpit-networkmanager
-      - cockpit-selinux
-      - cockpit-packagekit
-      - cockpit-storaged
-      - cockpit-pcp
-      - pcp
-      - python3-pcp
-      - pcp-system-tools
-      - tuned
-      - sysstat
-      
-      # NETWORKING, STORAGE & FIREWALL
-      - firewalld
-      - iptables
-      - openssh-server
-      - cryptsetup
-      - lvm2
-      - mdadm
-      
-      # SECURITY & AUTHENTICATION
-      - policycoreutils-python-utils 
-      - setroubleshoot-server
-      - audit
-      - setools-console
-      
-      # HARDWARE FIRMWARE
-      - fwupd
-      - amd-ucode-firmware
-      - microcode_ctl
-      
-      # OSBUILD COMPOSER
-      - osbuild-composer
-      - composer-cli
-      
-    remove: 
-      packages:
-        # CONSOLIDATED REMOVALS (All desktop apps removed here)
-        - firefox
-        - firefox-langpacks
-        - gnome-calculator
-        - gnome-contacts
-        - gnome-maps
-        - totem
-        - yelp
-        - gnome-text-editor
-        - gnome-tour
-        - gnome-shell-extension-background-logo
-        - rhythmbox
-        - baobab
+        # SYSTEM MANAGEMENT, MONITORING, & TUNING
+        - cockpit
+        - cockpit-machines 
+        - cockpit-podman
+        - cockpit-files
+        - cockpit-networkmanager
+        - cockpit-selinux
+        - cockpit-packagekit
+        - cockpit-storaged
+        - cockpit-pcp
+        - pcp
+        - python3-pcp
+        - pcp-system-tools
+        - tuned
+        - sysstat
+        
+        # NETWORKING, STORAGE & FIREWALL
+        - firewalld
+        - iptables
+        - openssh-server
+        - cryptsetup
+        - lvm2
+        - mdadm
+        
+        # SECURITY & AUTHENTICATION
+        - policycoreutils-python-utils 
+        - setroubleshoot-server
+        - audit
+        - setools-console
+        
+        # HARDWARE FIRMWARE
+        - fwupd
+        - amd-ucode-firmware
+        - microcode_ctl
+        
+        # OSBUILD COMPOSER
+        - osbuild-composer
+        - composer-cli
+        
+      remove: 
+        packages:
+          # CONSOLIDATED REMOVALS (All desktop apps removed here)
+          - firefox
+          - firefox-langpacks
+          - gnome-calculator
+          - gnome-contacts
+          - gnome-maps
+          - totem
+          - yelp
+          - gnome-text-editor
+          - gnome-tour
+          - gnome-shell-extension-background-logo
+          - rhythmbox
+          - baobab
 
   # 4. SERVICES: Enable essential daemons
   - type: services
-    enable:
-      - libvirtd.service 
-      - pmlogger.service 
-      - osbuild-composer.socket
-      - cockpit.socket
+    services: # FIX: Added 'services' key for module structure
+      enable:
+        - libvirtd.service 
+        - pmlogger.service 
+        - osbuild-composer.socket
+        - cockpit.socket
 
   # 5. FLATPAK REMOTE FIX
   - type: flatpak-remote
-    install:
-      # Guarantees Flathub remote is available
-      - remote: flathub
-        url: https://flathub.org/repo/flathub.flatpakrepo
-        system: true
+    remotes: # FIX: Added 'remotes' key for module structure
+      install:
+        # Guarantees Flathub remote is available
+        - remote: flathub
+          url: https://flathub.org/repo/flathub.flatpakrepo
+          system: true
 
-  # The #6 GNOME module was removed as requested.
+  # The GNOME module has been removed as requested.
 
-  # 6. DEFAULT FLATPAKS: System Scope Apps (Renumbered)
+  # 6. DEFAULT FLATPAKS: System Scope Apps
   - type: default-flatpaks
     configurations:
       - notify: true
@@ -141,5 +144,5 @@ modules:
           - org.mozilla.firefox
       - scope: user 
 
-  # 7. SIGNING (Renumbered)
+  # 7. SIGNING
   - type: signing
