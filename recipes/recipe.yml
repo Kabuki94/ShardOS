@@ -13,25 +13,22 @@ modules:
       - source: system
         destination: /
 
-  # 2. ADD EXTERNAL REPOSITORIES 🚨 NEW MODULE ADDED 🚨
-  # Installs the RPM files that define the repositories (RPM Fusion for codecs/drivers)
+  # 2. ADD EXTERNAL REPOSITORIES (RPM Fusion for codecs/drivers)
   - type: rpm
     install:
-      # RPM Fusion (Free) for common software and multimedia codecs
+      # RPM Fusion (Free)
       - https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
-      # RPM Fusion (Non-Free) for proprietary drivers and software
+      # RPM Fusion (Non-Free)
       - https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-      
-      # NOTE: Starship COPR is handled in the 'type: dnf' module below.
 
   # 3. DNF/RPM-OSTREE: Install Virtualization, Cockpit, SELinux Tools, and OSBuild Composer
   - type: dnf
     repos:
-      # COPR for up-to-date Starship prompt (if not in RPM Fusion)
+      # COPR for up-to-date Starship prompt
       copr:
         - atim/starship
     install:
-      # 🚨 CORE UPDATE TOOL ADDED 🚨
+      # CORE UPDATE TOOL
       - ublue-update              # Core update management tool
 
       # Essential user tools
@@ -52,12 +49,11 @@ modules:
       - podman
       - skopeo
       - buildah
-      # 🚨 MISSING CONTAINER TOOLS ADDED 🚨
-      - podman-compose          # Compose support for Cockpit Compose
+      - podman-compose          # Compose support
       - podman-docker           # Docker compatibility symlinks
       - containers-tools        # Utility tools
 
-      # 4. MULTIMEDIA/CODECS (Requires RPM Fusion to be enabled)
+      # MULTIMEDIA/CODECS (Requires RPM Fusion)
       - libavcodec-freeworld
 
       # SYSTEM MANAGEMENT, MONITORING, & TUNING
@@ -101,8 +97,8 @@ modules:
       
     remove: 
       packages:
-        - firefox 
-        - firefox-langpacks 
+        - firefox               # Base Firefox RPM removed
+        - firefox-langpacks     # Firefox language packs removed
         - gnome-calculator
         - gnome-contacts
         - gnome-maps
@@ -116,10 +112,17 @@ modules:
       - libvirtd.service 
       - pmlogger.service 
       - osbuild-composer.socket
-      # 🚨 COCKPIT SERVICE ADDED 🚨
-      - cockpit.socket
+      - cockpit.socket          # Cockpit service enabled
 
-  # 5. GNOME DESKTOP MINIMALISM & iGPU ENFORCEMENT
+  # 5. FLATPAK REMOTE FIX 🚨 NEW MODULE ADDED 🚨
+  - type: flatpak-remote
+    install:
+      # Ensures Flathub is defined before installing apps
+      - remote: flathub
+        url: https://flathub.org/repo/flathub.flatpakrepo
+        system: true
+
+  # 6. GNOME DESKTOP MINIMALISM & iGPU ENFORCEMENT
   - type: gnome
     integrated-gpu-priority: true
     remove: 
@@ -128,7 +131,7 @@ modules:
       - rhythmbox
       - baobab 
 
-  # 6. DEFAULT FLATPAKS: Essential Host Management
+  # 7. DEFAULT FLATPAKS: Essential Host Management
   - type: default-flatpaks
     configurations:
       - notify: true
@@ -136,11 +139,12 @@ modules:
         install: 
           - app.zen_browser.zen 
           - org.gnome.Loupe
-          # 🚨 BAZAAR FLATPAK ADDED 🚨
-          - io.github.kolunmi.Bazaar
           - io.podman_desktop.PodmanDesktop 
           - org.virt_manager.VirtManager 
+          - io.github.kolunmi.Bazaar   # Bazaar added
+        remove:
+          - org.mozilla.firefox        # Firefox Flatpak removal fix
       - scope: user 
 
-  # 7. SIGNING (No change needed)
+  # 8. SIGNING (No change needed)
   - type: signing
