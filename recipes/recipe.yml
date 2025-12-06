@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=./recipe.json # FIX: Changed to local path
+# yaml-language-server: $schema=./recipe.json # FIX: Changed to local path for reliable validation
 name: ShardOS
 description: Specialized host image for high-performance VMs and containers with dGPU passthrough and Image Building capabilities.
 
@@ -123,12 +123,9 @@ modules:
         url: https://flathub.org/repo/flathub.flatpakrepo
         system: true
 
-  # 6. GNOME DESKTOP MINIMALISM
-  - type: gnome
-    integrated-gpu-priority: true
-    remove: [] # Explicitly empty list to satisfy the schema validator
+  # The #6 GNOME module was removed as requested.
 
-  # 7. DEFAULT FLATPAKS: System Scope Apps
+  # 6. DEFAULT FLATPAKS: System Scope Apps (Renumbered)
   - type: default-flatpaks
     configurations:
       - notify: true
@@ -144,5 +141,5 @@ modules:
           - org.mozilla.firefox
       - scope: user 
 
-  # 8. SIGNING
+  # 7. SIGNING (Renumbered)
   - type: signing
