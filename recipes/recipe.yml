@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+# yaml-language-server: $schema=./recipe.json
 name: ShardOS
 description: Specialized host image for high-performance VMs and containers with dGPU passthrough and Image Building capabilities.
 
@@ -123,10 +123,10 @@ modules:
         url: https://flathub.org/repo/flathub.flatpakrepo
         system: true
 
-  # 6. GNOME DESKTOP MINIMALISM (FIXED SCHEMA)
+  # 6. GNOME DESKTOP MINIMALISM
   - type: gnome
     integrated-gpu-priority: true
-    remove: [] # FIX: Explicitly empty list to satisfy the schema
+    remove: [] # Explicitly empty list to satisfy the schema
 
   # 7. DEFAULT FLATPAKS: System Scope Apps
   - type: default-flatpaks
