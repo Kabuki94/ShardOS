@@ -37,5 +37,3 @@ jobs:
           registry_token: ${{ github.token }}
           pr_event_number: ${{ github.event.number }}
           maximize_build_space: true
-          # FIX: Skips the external schema check that was failing
-          skip_schema_check: true
