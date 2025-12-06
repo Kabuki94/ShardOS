@@ -93,20 +93,19 @@ modules:
         - composer-cli
         
       remove: 
-        packages:
-          # CONSOLIDATED REMOVALS (All desktop apps removed here)
-          - firefox
-          - firefox-langpacks
-          - gnome-calculator
-          - gnome-contacts
-          - gnome-maps
-          - totem
-          - yelp
-          - gnome-text-editor
-          - gnome-tour
-          - gnome-shell-extension-background-logo
-          - rhythmbox
-          - baobab
+        # CONSOLIDATED REMOVALS (All desktop apps removed here)
+        - firefox
+        - firefox-langpacks
+        - gnome-calculator
+        - gnome-contacts
+        - gnome-maps
+        - totem
+        - yelp
+        - gnome-text-editor
+        - gnome-tour
+        - gnome-shell-extension-background-logo
+        - rhythmbox
+        - baobab
 
   # 4. SERVICES: Enable essential daemons
   - type: services
@@ -125,8 +124,6 @@ modules:
         - remote: flathub
           url: https://flathub.org/repo/flathub.flatpakrepo
           system: true
-
-  # The GNOME module has been removed as requested.
 
   # 6. DEFAULT FLATPAKS: System Scope Apps
   - type: default-flatpaks
