@@ -1,38 +1,29 @@
-# yaml-language-server: $schema=./recipe.json # Using local schema
+# yaml-language-server: $schema=./recipe.json
 name: ShardOS
 description: Specialized host image for high-performance VMs and containers with dGPU passthrough and Image Building capabilities.
-
-# BASE IMAGE: Using the BETA channel for the Zen Kernel variant
 base-image: ghcr.io/ublue-os/silverblue-beta-zen
 image-version: latest
 
 modules:
-  # 1. CORE SYSTEM FILES
   - type: files
     files:
       - source: system
         destination: /
 
-  # 2. ADD EXTERNAL REPOSITORIES (RPM Fusion)
-  - type: rpm-ostree # FIX: Changed to rpm-ostree
+  - type: rpm-ostree
     install:
       - https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
       - https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 
-  # 3. DNF/RPM-OSTREE: Package Management (Install/Remove)
   - type: dnf
     repos:
-      # Starship COPR
       copr:
         - atim/starship
-    packages: # FIX: Added 'packages' key for dnf module structure
+    packages:
       install:
-        # CORE & USER TOOLS
         - ublue-update
         - micro
         - starship
-        
-        # VIRTUALIZATION & KVM
         - qemu-kvm
         - libvirt
         - libvirt-client
@@ -41,19 +32,13 @@ modules:
         - virt-install
         - edk2-ovmf
         - virt-viewer
-        
-        # CONTAINER MANAGEMENT
         - podman
         - skopeo
         - buildah
         - podman-compose
         - podman-docker
         - containers-tools
-
-        # MULTIMEDIA/CODECS (Requires RPM Fusion)
         - libavcodec-freeworld
-
-        # SYSTEM MANAGEMENT, MONITORING, & TUNING
         - cockpit
         - cockpit-machines 
         - cockpit-podman
@@ -68,32 +53,22 @@ modules:
         - pcp-system-tools
         - tuned
         - sysstat
-        
-        # NETWORKING, STORAGE & FIREWALL
         - firewalld
         - iptables
         - openssh-server
         - cryptsetup
         - lvm2
         - mdadm
-        
-        # SECURITY & AUTHENTICATION
         - policycoreutils-python-utils 
         - setroubleshoot-server
         - audit
         - setools-console
-        
-        # HARDWARE FIRMWARE
         - fwupd
         - amd-ucode-firmware
         - microcode_ctl
-        
-        # OSBUILD COMPOSER
         - osbuild-composer
         - composer-cli
-        
       remove: 
-        # CONSOLIDATED REMOVALS (All desktop apps removed here)
         - firefox
         - firefox-langpacks
         - gnome-calculator
@@ -107,25 +82,21 @@ modules:
         - rhythmbox
         - baobab
 
-  # 4. SERVICES: Enable essential daemons
   - type: services
-    services: # FIX: Added 'services' key for module structure
+    services:
       enable:
         - libvirtd.service 
         - pmlogger.service 
         - osbuild-composer.socket
         - cockpit.socket
 
-  # 5. FLATPAK REMOTE FIX
   - type: flatpak-remote
-    remotes: # FIX: Added 'remotes' key for module structure
+    remotes:
       install:
-        # Guarantees Flathub remote is available
         - remote: flathub
           url: https://flathub.org/repo/flathub.flatpakrepo
           system: true
 
-  # 6. DEFAULT FLATPAKS: System Scope Apps
   - type: default-flatpaks
     configurations:
       - notify: true
@@ -137,9 +108,7 @@ modules:
           - org.virt_manager.VirtManager 
           - io.github.kolunmi.Bazaar
         remove:
-          # Removes Firefox Flatpak (fixes auto-install)
           - org.mozilla.firefox
       - scope: user 
 
-  # 7. SIGNING
   - type: signing
