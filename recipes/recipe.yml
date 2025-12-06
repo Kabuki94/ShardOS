@@ -2,8 +2,8 @@
 name: ShardOS
 description: Specialized host image for high-performance VMs and containers with dGPU passthrough and Image Building capabilities.
 
-# 1. BASE IMAGE: Using the Zen Kernel variant for high performance and low latency
-base-image: ghcr.io/ublue-os/silverblue-main-zen
+# BASE IMAGE: Using the BETA channel for the Zen Kernel variant
+base-image: ghcr.io/ublue-os/silverblue-beta-zen
 image-version: latest
 
 modules:
@@ -13,45 +13,41 @@ modules:
       - source: system
         destination: /
 
-  # 2. ADD EXTERNAL REPOSITORIES (RPM Fusion for codecs/drivers)
+  # 2. ADD EXTERNAL REPOSITORIES (RPM Fusion)
   - type: rpm
     install:
-      # RPM Fusion (Free)
       - https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
-      # RPM Fusion (Non-Free)
       - https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 
-  # 3. DNF/RPM-OSTREE: Install Virtualization, Cockpit, SELinux Tools, and OSBuild Composer
+  # 3. DNF/RPM-OSTREE: Package Management
   - type: dnf
     repos:
-      # COPR for up-to-date Starship prompt
+      # Starship COPR
       copr:
         - atim/starship
     install:
-      # CORE UPDATE TOOL
-      - ublue-update              # Core update management tool
-
-      # Essential user tools
+      # CORE & USER TOOLS
+      - ublue-update
       - micro
       - starship
       
-      # VIRTUALIZATION & KVM (Host Hypervisor)
+      # VIRTUALIZATION & KVM
       - qemu-kvm
       - libvirt
       - libvirt-client
       - libvirt-daemon-kvm
       - libvirt-daemon-config-network
       - virt-install
-      - edk2-ovmf             # UEFI Firmware
-      - virt-viewer           # Remote console viewer
+      - edk2-ovmf
+      - virt-viewer
       
-      # CONTAINER MANAGEMENT (Core Tools)
+      # CONTAINER MANAGEMENT
       - podman
       - skopeo
       - buildah
-      - podman-compose          # Compose support
-      - podman-docker           # Docker compatibility symlinks
-      - containers-tools        # Utility tools
+      - podman-compose
+      - podman-docker
+      - containers-tools
 
       # MULTIMEDIA/CODECS (Requires RPM Fusion)
       - libavcodec-freeworld
@@ -60,25 +56,25 @@ modules:
       - cockpit
       - cockpit-machines 
       - cockpit-podman
-      - cockpit-files           # Cockpit file browser
-      - cockpit-networkmanager  # Cockpit network module
-      - cockpit-selinux         # Cockpit SELinux module
+      - cockpit-files
+      - cockpit-networkmanager
+      - cockpit-selinux
       - cockpit-packagekit
       - cockpit-storaged
       - cockpit-pcp
-      - pcp                     # Core PCP package
-      - python3-pcp             # Python bindings for PCP
+      - pcp
+      - python3-pcp
       - pcp-system-tools
-      - tuned                   # System performance tuner
+      - tuned
       - sysstat
       
       # NETWORKING, STORAGE & FIREWALL
-      - firewalld               # Host firewall
+      - firewalld
       - iptables
       - openssh-server
-      - cryptsetup              # Disk encryption utility
-      - lvm2                    # Logical Volume Manager
-      - mdadm                   # Software RAID manager
+      - cryptsetup
+      - lvm2
+      - mdadm
       
       # SECURITY & AUTHENTICATION
       - policycoreutils-python-utils 
@@ -87,9 +83,9 @@ modules:
       - setools-console
       
       # HARDWARE FIRMWARE
-      - fwupd                   # Firmware Updater
-      - amd-ucode-firmware      # AMD Microcode
-      - microcode_ctl           # Intel/AMD Microcode Control
+      - fwupd
+      - amd-ucode-firmware
+      - microcode_ctl
       
       # OSBUILD COMPOSER
       - osbuild-composer
@@ -97,13 +93,14 @@ modules:
       
     remove: 
       packages:
-        - firefox               # Base Firefox RPM removed
-        - firefox-langpacks     # Firefox language packs removed
+        # Remove Base OS applications
+        - firefox
+        - firefox-langpacks
         - gnome-calculator
         - gnome-contacts
         - gnome-maps
-        - totem 
-        - yelp 
+        - totem
+        - yelp
         - gnome-text-editor 
 
   # 4. SERVICES: Enable essential daemons
@@ -112,17 +109,17 @@ modules:
       - libvirtd.service 
       - pmlogger.service 
       - osbuild-composer.socket
-      - cockpit.socket          # Cockpit service enabled
+      - cockpit.socket
 
-  # 5. FLATPAK REMOTE FIX 🚨 NEW MODULE ADDED 🚨
+  # 5. FLATPAK REMOTE FIX
   - type: flatpak-remote
     install:
-      # Ensures Flathub is defined before installing apps
+      # Guarantees Flathub remote is available
       - remote: flathub
         url: https://flathub.org/repo/flathub.flatpakrepo
         system: true
 
-  # 6. GNOME DESKTOP MINIMALISM & iGPU ENFORCEMENT
+  # 6. GNOME DESKTOP MINIMALISM
   - type: gnome
     integrated-gpu-priority: true
     remove: 
@@ -131,7 +128,7 @@ modules:
       - rhythmbox
       - baobab 
 
-  # 7. DEFAULT FLATPAKS: Essential Host Management
+  # 7. DEFAULT FLATPAKS: System Scope Apps
   - type: default-flatpaks
     configurations:
       - notify: true
@@ -141,10 +138,11 @@ modules:
           - org.gnome.Loupe
           - io.podman_desktop.PodmanDesktop 
           - org.virt_manager.VirtManager 
-          - io.github.kolunmi.Bazaar   # Bazaar added
+          - io.github.kolunmi.Bazaar
         remove:
-          - org.mozilla.firefox        # Firefox Flatpak removal fix
+          # Removes Firefox Flatpak (fixes auto-install)
+          - org.mozilla.firefox
       - scope: user 
 
-  # 8. SIGNING (No change needed)
+  # 8. SIGNING
   - type: signing
