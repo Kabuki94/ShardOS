@@ -1,126 +1,65 @@
----
-# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
-name: ShardOS
-description: Specialized host image for high-performance VMs and containers with dGPU passthrough and Image Building capabilities, built on the Zen Kernel.
+# This recipe defines the structure and contents of your custom ShardOS image.
+# It uses the Universal Blue (UB) framework and various modules.
 
-# 1. BASE IMAGE: Using the Zen Kernel variant for high performance and low latency
-base-image: ghcr.io/ublue-os/silverblue-main-zen
-image-version: latest
+# -------------------------------------------------------------
+# BASE IMAGE
+# -------------------------------------------------------------
+name: shardos
+description: The custom operating system image for ShardOS.
+base-image: ghcr.io/ublue-os/kinoite-main # Or your preferred base image
 
+# -------------------------------------------------------------
+# IMAGE TAGS & ARCHITECTURE
+# -------------------------------------------------------------
+# Define which architectures to build for (e.g., x86_64, aarch64)
+# arch: x86_64
+
+# -------------------------------------------------------------
+# MODULES
+# -------------------------------------------------------------
 modules:
+
+  # 1. CORE SYSTEM FILES
+  # Merges files from the local 'files/system' directory into the OS root (e.g., /etc/motd)
   - type: files
     files:
       - source: system
         destination: /
 
-  # ADDED: Installs the ujust utility for running maintenance scripts
-  - type: ujust
-
-  # ADDED: Enables automatic background updates and desktop notifications
-  - type: update-system 
-
-  # 2. DNF/RPM-OSTREE: Install all core host packages and remove unwanted desktop RPMs
+  # 2. DNF PACKAGE MANAGEMENT (Install/Remove RPMs)
   - type: dnf
-    repos:
-      copr:
-        - atim/starship
+    # Packages to REMOVE from the base image
+    remove:
+      # Fix for Issue: Ensure Firefox and its language packs are removed
+      - firefox
+      - firefox-langpacks
+    
+    # Packages to INSTALL into the base image
     install:
-      # Essential user tools
-      - micro
-      - starship
-      
       # VIRTUALIZATION & KVM (Host Hypervisor)
       - qemu-kvm
-      - libvirt
-      - libvirt-client
-      - libvirt-daemon-kvm
       - libvirt-daemon-config-network
-      - virt-install
-      - edk2-ovmf
-      - virt-viewer
       
-      # CONTAINER MANAGEMENT (Core Tools)
-      - podman
-      - skopeo
-      - buildah
-      
-      # SYSTEM MANAGEMENT, MONITORING, & TUNING
-      - cockpit
-      - cockpit-machines 
-      - cockpit-podman
-      - cockpit-files
-      - cockpit-networkmanager
-      - cockpit-selinux
-      - cockpit-packagekit
-      - cockpit-storaged
-      - cockpit-pcp
-      - pcp
-      - python3-pcp
-      - pcp-system-tools
-      - tuned
-      - sysstat
-      
-      # NETWORKING, STORAGE & FIREWALL
-      - firewalld
-      - iptables
-      - openssh-server
-      - cryptsetup
-      - lvm2
-      - mdadm
-      
-      # SECURITY & AUTHENTICATION
-      - policycoreutils-python-utils 
-      - setroubleshoot-server
-      - audit
-      - setools-console
-      
-      # HARDWARE FIRMWARE
-      - fwupd
-      - amd-ucode-firmware
-      - microcode_ctl
-      
-      # OSBUILD COMPOSER
-      - osbuild-composer
-      - composer-cli
-      
-    remove: # Removing unnecessary desktop RPMs
-      packages:
-        - firefox 
-        - firefox-langpacks 
-        - gnome-calculator
-        - gnome-contacts
-        - gnome-maps
-        - totem 
-        - yelp 
-        - gnome-text-editor 
+      # USER TOOLS
+      - micro # A terminal-based text editor
+      - starship # A customizable prompt for the shell
 
-  # 3. SERVICES: Enable essential daemons on boot
-  - type: services
-    enable:
-      - libvirtd.service
-      - pmlogger.service
-      - osbuild-composer.socket
+  # 3. FLATPAK MANAGEMENT (Add/Remove Remotes and Apps)
 
-  # 4. GNOME DESKTOP MINIMALISM & iGPU ENFORCEMENT
-  - type: gnome
-    integrated-gpu-priority: true
-    remove: 
-      - gnome-tour
-      - gnome-shell-extension-background-logo
-      - rhythmbox
-      - baobab 
+  # Fix for Issue: Remove the default Fedora Flatpak remote to prevent confusing notifications
+  - type: flatpak-remove
+    remove:
+      - remote: fedora
 
-  # 5. DEFAULT FLATPAKS: Essential Host Management GUI tools
-  - type: default-flatpaks
-    configurations:
-      - notify: true
-        scope: system
-        install: 
-          - app.zen_browser.zen
-          - org.gnome.Loupe
-          - io.podman_desktop.PodmanDesktop
-          - org.virt_manager.VirtManager
-      - scope: user 
+  # NEW: Install the Bazaar Flatpak app from Flathub
+  - type: flatpak-install
+    install:
+      - app-id: io.github.kolunmi.Bazaar
+        remote: flathub
 
-  # 6. SIGNING: Essential for secure image verification
-  - type: signing
+  # 4. UJUST & UPDATES
+  # Adds the ujust management utility
+  - type: ujust
+
+  # Configures automatic system updates
+  - type: update-system
