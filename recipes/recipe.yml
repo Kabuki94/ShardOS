@@ -1,45 +1,122 @@
 ---
 # yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
-# image will be published to ghcr.io/<user>/<name>
 name: ShardOS
-# description will be included in the image's metadata
-description: This is my personal OS image.
+description: Specialized host image for high-performance VMs and containers with dGPU passthrough and Image Building capabilities, built on the Zen Kernel.
 
-# the base image to build on top of (FROM) and the version tag to use
-base-image: ghcr.io/ublue-os/silverblue-main
-image-version: 42 # latest is also supported if you want new updates ASAP
+# 1. BASE IMAGE: Using the Zen Kernel variant for high performance and low latency
+base-image: ghcr.io/ublue-os/silverblue-main-zen
+image-version: latest
 
-# module configuration, executed in order
-# you can include multiple instances of the same module
 modules:
+  # FILES: Copy custom configuration files from the 'files/' directory into the root filesystem
   - type: files
     files:
       - source: system
-        destination: / # copies files/system/* (* means everything inside it) into your image's root folder /
+        destination: /
 
+  # 2. DNF/RPM-OSTREE: Install all core host packages and remove unwanted desktop RPMs
   - type: dnf
     repos:
+      # Custom COPR for specific user tools
       copr:
         - atim/starship
     install:
+      # Essential user tools
+      - micro
+      - starship
+      
+      # VIRTUALIZATION & KVM (Host Hypervisor)
+      - qemu-kvm
+      - libvirt
+      - libvirt-client
+      - libvirt-daemon-kvm       # Critical for KVM hardware acceleration
+      - libvirt-daemon-config-network
+      - virt-install
+      - edk2-ovmf                 # UEFI Firmware for modern guests
+      - virt-viewer               # Remote console viewer
+      
+      # CONTAINER MANAGEMENT (Core Tools)
+      - podman
+      - skopeo
+      - buildah
+      
+      # SYSTEM MANAGEMENT, MONITORING, & TUNING
+      - cockpit
+      - cockpit-machines 
+      - cockpit-podman
+      - cockpit-files           # Cockpit file browser
+      - cockpit-networkmanager  # Cockpit network module
+      - cockpit-selinux         # Cockpit SELinux module
+      - cockpit-packagekit
+      - cockpit-storaged
+      - cockpit-pcp
+      - pcp                     # Core PCP package
+      - python3-pcp             # Python bindings for PCP
+      - pcp-system-tools
+      - tuned                   # System performance tuner for 'virtual-host' profile
+      - sysstat
+      
+      # NETWORKING, STORAGE & FIREWALL
+      - firewalld               # Host firewall
+      - iptables
+      - openssh-server
+      - cryptsetup              # Disk encryption utility
+      - lvm2                    # Logical Volume Manager
+      - mdadm                   # Software RAID manager
+      
+      # SECURITY & AUTHENTICATION
+      - policycoreutils-python-utils 
+      - setroubleshoot-server
+      - audit
+      - setools-console
+      
+      # HARDWARE FIRMWARE
+      - fwupd                   # Firmware Updater
+      - amd-ucode-firmware      # AMD Microcode
+      - microcode_ctl           # Intel/AMD Microcode Control
+      
+      # OSBUILD COMPOSER
+      - osbuild-composer        # Core Image Building Service
+      - composer-cli            # Command line client for OSBuild
+      
+    remove: # Removing unnecessary desktop RPMs
       packages:
-        - micro
-        - starship
-    remove:
-      packages:
-        # example: removing firefox (in favor of the flatpak)
-        # "firefox" is the main package, "firefox-langpacks" is a dependency
-        - firefox
-        - firefox-langpacks # also remove firefox dependency (not required for all packages, this is a special case)
+        - firefox 
+        - firefox-langpacks 
+        - gnome-calculator
+        - gnome-contacts
+        - gnome-maps
+        - totem 
+        - yelp 
+        - gnome-text-editor 
 
+  # 3. SERVICES: Enable essential daemons on boot
+  - type: services
+    enable:
+      - libvirtd.service        # Virtualization daemon
+      - pmlogger.service        # PCP logging service
+      - osbuild-composer.socket # Image Builder service
+
+  # 4. GNOME DESKTOP MINIMALISM & iGPU ENFORCEMENT
+  - type: gnome
+    integrated-gpu-priority: true # Ensures iGPU is used, leaving dGPU for passthrough
+    remove: 
+      - gnome-tour
+      - gnome-shell-extension-background-logo
+      - rhythmbox
+      - baobab 
+
+  # 5. DEFAULT FLATPAKS: Essential Host Management GUI tools
   - type: default-flatpaks
     configurations:
-      - notify: true # Send notification after install/uninstall is finished (true/false)
+      - notify: true
         scope: system
-        # If no repo information is specified, Flathub will be used by default
-        install: # system flatpaks we want all users to have and not remove
-          - org.mozilla.firefox
-          - org.gnome.Loupe
-      - scope: user # Also add Flathub user repo, but no user packages
+        install: 
+          - app.zen_browser.zen       # Browser for Cockpit access
+          - org.gnome.Loupe           # Image viewer
+          - io.podman_desktop.PodmanDesktop # Container/VM management GUI
+          - org.virt_manager.VirtManager    # Traditional VM management GUI
+      - scope: user 
 
-  - type: signing # this sets up the proper policy & signing files for signed images to work fully
+  # 6. SIGNING: Essential for secure image verification
+  - type: signing
