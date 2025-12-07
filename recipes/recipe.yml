@@ -79,20 +79,8 @@ modules:
       copr:
         - atim/starship
 
-  - type: services
-    config:
-      enable:
-        - libvirtd.service 
-        - pmlogger.service 
-        - osbuild-composer.socket
-        - cockpit.socket
-
-  - type: flatpak-remote
-    config:
-      remotes:
-        install:
-          - remote: flathub
-            url: https://flathub.org/repo/flathub.flatpakrepo
+  - from-file: service-config.yml
+  - from-file: flatpak-remote-config.yml
 
   - type: default-flatpaks
     configurations:
