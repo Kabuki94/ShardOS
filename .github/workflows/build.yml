@@ -1,4 +1,3 @@
-```yaml
 name: bluebuild
 on:
   schedule:
@@ -77,4 +76,3 @@ jobs:
         env:
           BUILD_OPTS: ${{ steps.set_build_opts.outputs.build_opts }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-```
