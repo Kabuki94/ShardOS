@@ -76,3 +76,6 @@ jobs:
         env:
           BUILD_OPTS: ${{ steps.set_build_opts.outputs.build_opts }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+
+      - name: Build and sign image
+        run: bluebuild build --no-sign
