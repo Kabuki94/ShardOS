@@ -1,3 +1,4 @@
+```yaml
 name: bluebuild
 on:
   schedule:
@@ -17,7 +18,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write   # keep for keyless signing/OIDC if desired
+      id-token: write
     strategy:
       fail-fast: false
       matrix:
@@ -42,28 +43,28 @@ jobs:
             echo "build_opts=--no-sign" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Inject cosign public key (optional)
+      - name: Inject cosign public key (if provided)
         shell: bash
         run: |
-          # Write cosign.pub only when the secret is present.
+          # Write cosign.pub only when the secret is present; preserve exact content.
           if [ -n "${{ secrets.COSIGN_PUB }}" ]; then
             printf '%s' "${{ secrets.COSIGN_PUB }}" > ./cosign.pub
             chmod 644 ./cosign.pub
-            echo "Wrote cosign.pub"
+            echo "WROTE_PUBLIC_KEY=1" >> "$GITHUB_OUTPUT"
           else
-            echo "No COSIGN_PUB secret present; skipping cosign.pub write"
+            echo "WROTE_PUBLIC_KEY=0" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Inject cosign private key (optional and sensitive)
+      - name: Inject cosign private key (if provided - sensitive)
         shell: bash
         run: |
-          # Write cosign.key only when the secret is present. Prefer keyless signing.
+          # Only write private key when explicitly provided. Prefer keyless signing via OIDC.
           if [ -n "${{ secrets.COSIGN_PRIVATE_KEY }}" ]; then
             printf '%s' "${{ secrets.COSIGN_PRIVATE_KEY }}" > ./cosign.key
             chmod 600 ./cosign.key
-            echo "Wrote cosign.key"
+            echo "WROTE_PRIVATE_KEY=1" >> "$GITHUB_OUTPUT"
           else
-            echo "No COSIGN_PRIVATE_KEY secret present; skipping cosign.key write"
+            echo "WROTE_PRIVATE_KEY=0" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build Custom Image
@@ -75,5 +76,5 @@ jobs:
           pr_event_number: ${{ github.event.number }}
         env:
           BUILD_OPTS: ${{ steps.set_build_opts.outputs.build_opts }}
-](#)
-
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+```
