@@ -1,0 +1,6 @@
+type: services
+enable:
+  - libvirtd.service 
+  - pmlogger.service 
+  - osbuild-composer.socket
+  - cockpit.socket
