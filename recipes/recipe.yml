@@ -80,17 +80,19 @@ modules:
         - atim/starship
 
   - type: services
-    enable:
-      - libvirtd.service 
-      - pmlogger.service 
-      - osbuild-composer.socket
-      - cockpit.socket
+    config:
+      enable:
+        - libvirtd.service 
+        - pmlogger.service 
+        - osbuild-composer.socket
+        - cockpit.socket
 
   - type: flatpak-remote
-    remotes:
-      install:
-        - remote: flathub
-          url: https://flathub.org/repo/flathub.flatpakrepo
+    config:
+      remotes:
+        install:
+          - remote: flathub
+            url: https://flathub.org/repo/flathub.flatpakrepo
 
   - type: default-flatpaks
     configurations:
