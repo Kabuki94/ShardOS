@@ -31,9 +31,10 @@ jobs:
           fetch-depth: 0
           
       - name: Maximize Build Space
-        uses: easimon/free-disk-space@v3
+        uses: jlumbroso/free-disk-space@v0.1.4 # Corrected action and version
         with:
-          docker-images: false
+          tool-cache: true
+          android: true
 
       - name: Build Custom Image
         uses: blue-build/github-action@v1.9.1
