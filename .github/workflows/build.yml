@@ -44,15 +44,12 @@ jobs:
           if [ -z "$SIGN" ]; then SIGN=false; fi
           echo "Detected recipe.build.sign='$SIGN'"
           if [ "$SIGN" = "true" ]; then
+            # Empty build_opts means signing is enabled (no --no-sign flag)
             echo "build_opts=" > "$GITHUB_OUTPUT"
           else
             echo "build_opts=--no-sign" > "$GITHUB_OUTPUT"
           fi
 
-      - name: Restore cosign keys (if signing)
-        if: steps.set_build_opts.outputs.build_opts == ''
-        uses: actions/checkout@v4
-        # run restore script which will fail with a clear message if secrets are missing
       - name: Run restore script
         if: steps.set_build_opts.outputs.build_opts == ''
         run: |

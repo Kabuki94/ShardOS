@@ -3,7 +3,8 @@ set -euo pipefail
 
 # Decode base64 secrets into cosign.key and cosign.pub
 if [ -z "${COSIGN_KEY_B64:-}" ] || [ -z "${COSIGN_PUB_B64:-}" ]; then
-  echo "ERROR: COSIGN_KEY_B64 and/or COSIGN_PUB_B64 secrets not provided.\nPlease add these secrets to the repository or disable signing (set build.sign: false in the recipe)." >&2
+  echo "ERROR: COSIGN_KEY_B64 and/or COSIGN_PUB_B64 secrets not provided." >&2
+  echo "Please add these secrets to the repository or disable signing (set build.sign: false in the recipe)." >&2
   exit 1
 fi
 
