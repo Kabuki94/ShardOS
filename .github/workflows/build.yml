@@ -21,14 +21,14 @@ jobs:
 
       # Optionally inject public key from secret if you don't commit cosign.pub
       - name: Provide cosign public key (from secret)
-        if: ${{ secrets.COSIGN_PUB != '' }}
+        if: ${{ always() && secrets.COSIGN_PUB != '' }}
         run: |
           printf '%s\n' "${{ secrets.COSIGN_PUB }}" > cosign.pub
           chmod 644 cosign.pub
 
       # Provide private key file for actions/tools that expect a file (kept only in runner)
       - name: Provide cosign private key (from secret)
-        if: ${{ secrets.COSIGN_PRIVATE_KEY != '' }}
+        if: ${{ always() && secrets.COSIGN_PRIVATE_KEY != '' }}
         run: |
           printf '%s\n' "${{ secrets.COSIGN_PRIVATE_KEY }}" > cosign.key
           chmod 600 cosign.key
