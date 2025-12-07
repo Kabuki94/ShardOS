@@ -21,17 +21,27 @@ jobs:
 
       # Optionally inject public key from secret if you don't commit cosign.pub
       - name: Provide cosign public key (from secret)
-        if: ${{ always() && secrets.COSIGN_PUB != '' }}
+        env:
+          COSIGN_PUB: ${{ secrets.COSIGN_PUB }}
         run: |
-          printf '%s\n' "${{ secrets.COSIGN_PUB }}" > cosign.pub
-          chmod 644 cosign.pub
+          if [ -n "$COSIGN_PUB" ]; then
+            printf '%s\n' "$COSIGN_PUB" > cosign.pub
+            chmod 644 cosign.pub
+          else
+            echo "COSIGN_PUB not set; skipping cosign.pub creation"
+          fi
 
       # Provide private key file for actions/tools that expect a file (kept only in runner)
       - name: Provide cosign private key (from secret)
-        if: ${{ always() && secrets.COSIGN_PRIVATE_KEY != '' }}
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
         run: |
-          printf '%s\n' "${{ secrets.COSIGN_PRIVATE_KEY }}" > cosign.key
-          chmod 600 cosign.key
+          if [ -n "$COSIGN_PRIVATE_KEY" ]; then
+            printf '%s\n' "$COSIGN_PRIVATE_KEY" > cosign.key
+            chmod 600 cosign.key
+          else
+            echo "COSIGN_PRIVATE_KEY not set; skipping cosign.key creation"
+          fi
 
       - name: Build Custom Image (blue-build)
         uses: blue-build/github-action@v1.10
