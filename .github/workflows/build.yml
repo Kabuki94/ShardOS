@@ -1,45 +1,45 @@
 name: bluebuild
 on:
-  schedule:
-    - cron:
-        "00 06 * * *" # build at 06:00 UTC every day
-        # (20 minutes after last ublue images start building)
   push:
-    branches:
-      - main
-    paths-ignore: # don't rebuild if only documentation has changed
-      - "**.md"
+    branches: [ main ]
+  workflow_dispatch:
 
-  pull_request:
-  workflow_dispatch: # allow manually triggering builds
-concurrency:
-  # only run one build at a time
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
-  cancel-in-progress: true
 jobs:
   bluebuild:
-    name: Build Custom Image
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
       id-token: write
     strategy:
-      fail-fast: false # stop GH from cancelling all matrix builds if one fails
       matrix:
         recipe:
-          # !! Add your recipes here
           - recipe.yml
     steps:
-      # the build is fully handled by the reusable github action
-      - name: Build Custom Image
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Optionally inject public key from secret if you don't commit cosign.pub
+      - name: Provide cosign public key (from secret)
+        if: ${{ secrets.COSIGN_PUB != '' }}
+        run: |
+          printf '%s\n' "${{ secrets.COSIGN_PUB }}" > cosign.pub
+          chmod 644 cosign.pub
+
+      # Provide private key file for actions/tools that expect a file (kept only in runner)
+      - name: Provide cosign private key (from secret)
+        if: ${{ secrets.COSIGN_PRIVATE_KEY != '' }}
+        run: |
+          printf '%s\n' "${{ secrets.COSIGN_PRIVATE_KEY }}" > cosign.key
+          chmod 600 cosign.key
+
+      - name: Build Custom Image (blue-build)
         uses: blue-build/github-action@v1.10
         with:
           recipe: ${{ matrix.recipe }}
           registry_token: ${{ github.token }}
           pr_event_number: ${{ github.event.number }}
           use_unstable_cli: true
-          build_args: --no-sign
-
-          # enabled by default, disable if your image is small and you want faster builds
           maximize_build_space: true
+          # Provide the private key content to the action if supported:
+          cosign_private_key: ${{ secrets.COSIGN_PRIVATE_KEY }}
