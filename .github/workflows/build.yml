@@ -31,9 +31,10 @@ jobs:
           fetch-depth: 0
           
       - name: Build Custom Image
-        uses: blue-build/github-action@v1.9.1
+        uses: blue-build/github-action@v1.10.2
         with:
           recipe: ${{ matrix.recipe }}
           cosign_private_key: ${{ secrets.SIGNING_SECRET }}
+          cosign_password: ${{ secrets.COSIGN_PASSPHRASE }}
           registry_token: ${{ github.token }}
           pr_event_number: ${{ github.event.number }}
