@@ -55,8 +55,7 @@ jobs:
         run: |
           .github/scripts/restore-cosign-keys.sh
         env:
-          COSIGN_KEY_B64: ${{ secrets.COSIGN_KEY_B64 }}
-          COSIGN_PUB_B64: ${{ secrets.COSIGN_PUB_B64 }}
+          SIGNING_SECRET: ${{ secrets.SIGNING_SECRET }}
 
       - name: Build Custom Image
         uses: blue-build/github-action@v1.10.2
