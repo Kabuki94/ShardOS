@@ -1,17 +1,19 @@
 name: bluebuild
 on:
   schedule:
-    - cron: "00 06 * * *"
+    - cron:
+        "00 06 * * *" # build at 06:00 UTC every day
+        # (20 minutes after last ublue images start building)
   push:
-    paths-ignore:
+    paths-ignore: # don't rebuild if only documentation has changed
       - "**.md"
-  pull_request:
-  workflow_dispatch:
 
+  pull_request:
+  workflow_dispatch: # allow manually triggering builds
 concurrency:
+  # only run one build at a time
   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
   cancel-in-progress: true
-
 jobs:
   bluebuild:
     name: Build Custom Image
@@ -21,49 +23,20 @@ jobs:
       packages: write
       id-token: write
     strategy:
-      fail-fast: false
+      fail-fast: false # stop GH from cancelling all matrix builds if one fails
       matrix:
         recipe:
+          # !! Add your recipes here
           - recipe.yml
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0
-
-      - name: Determine build options for signing (scan recipe)
-        id: set_build_opts
-        shell: bash
-        run: |
-          # Default to no signing
-          SIGN=false
-          # Parse the first document's build.sign value if present
-          # Using 'flag' instead of 'in' to avoid awk reserved word issues
-          SIGN=$(awk 'BEGIN{flag=0} /^build:/ {flag=1; next} flag && $1=="sign:" {print $2; exit} /^---/ {flag=0}' recipes/recipe.yml || true)
-          if [ -z "$SIGN" ]; then SIGN=false; fi
-          echo "Detected recipe.build.sign='$SIGN'"
-          if [ "$SIGN" = "true" ]; then
-            # Empty build_opts means signing is enabled (no --no-sign flag)
-            echo "build_opts=" >> "$GITHUB_OUTPUT"
-            echo "sign_enabled=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "build_opts=--no-sign" >> "$GITHUB_OUTPUT"
-            echo "sign_enabled=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Run restore script
-        if: steps.set_build_opts.outputs.sign_enabled == 'true'
-        run: |
-          .github/scripts/restore-cosign-keys. sh
-        env:
-          SIGNING_SECRET: ${{ secrets. SIGNING_SECRET }}
-
+      # the build is fully handled by the reusable github action
       - name: Build Custom Image
-        uses: blue-build/github-action@v1.10.2
+        uses: blue-build/github-action@v1.10
         with:
           recipe: ${{ matrix.recipe }}
-          build_opts: ${{ steps.set_build_opts.outputs.build_opts }}
+          cosign_private_key: ${{ secrets.SIGNING_SECRET }}
           registry_token: ${{ github.token }}
           pr_event_number: ${{ github.event.number }}
+
+          # enabled by default, disable if your image is small and you want faster builds
+          maximize_build_space: true
