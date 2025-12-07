@@ -28,12 +28,12 @@ jobs:
         run: touch -- --skip-schema-check
         
       - name: Install Cosign
-        uses: sigstore/cosign-installer@v3.5.0
+        uses: sigstore/cosign-installer@v4.0.0
         with:
           cosign-release: v3.0.2
           
       - name: Build Custom Image
-        uses: blue-build/github-action@main
+        uses: blue-build/github-action@v1.9.1
         with:
           recipe: ${{ matrix.recipe }}
           cosign_private_key: ${{ secrets.SIGNING_SECRET }}
