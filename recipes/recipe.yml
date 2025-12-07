@@ -104,6 +104,4 @@ modules:
           - io.github.kolunmi.Bazaar
         remove:
           - org.mozilla.firefox
-      - scope: user 
-
-# ❌ REMOVED: - type: signing
+      - scope: user
