@@ -31,7 +31,7 @@ jobs:
           fetch-depth: 0
           
       - name: Maximize Build Space
-        uses: hastd/free-disk-space@v1.2.6
+        uses: easimon/free-disk-space@v3
         with:
           docker-images: false
 
