@@ -53,5 +53,5 @@ jobs:
           pr_event_number: ${{ github.event.number }}
           use_unstable_cli: true
           maximize_build_space: true
-          # Ensure bluebuild knows exactly where the keys are
-          build_opts: --cosign-key ./cosign.key --cosign-pub ./cosign.pub
+          # Let BlueBuild auto-detect the cosign key pair
+          build_opts: ""
