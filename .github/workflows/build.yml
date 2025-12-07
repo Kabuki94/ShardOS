@@ -65,37 +65,3 @@ jobs:
           build_opts: ${{ steps.set_build_opts.outputs.build_opts }}
           registry_token: ${{ github.token }}
           pr_event_number: ${{ github.event.number }}
-        env:
-          BUILD_OPTS: ${{ steps.set_build_opts.outputs.build_opts }}
-
-      - name: Debug build options
-        shell: bash
-        run: |
-          echo "Resolved build_opts='${{ steps.set_build_opts.outputs.build_opts }}'"
-          echo "ENV BUILD_OPTS='${BUILD_OPTS:-}'"
-          bluebuild --version || true
-        env:
-          BUILD_OPTS: ${{ steps.set_build_opts.outputs.build_opts }}
-
-      - name: Build image (explicitly pass build_opts)
-        shell: bash
-        run: |
-          # Use BUILD_OPTS environment variable which is set above
-          if [ -n "${BUILD_OPTS:-}" ]; then
-            bluebuild build ${BUILD_OPTS}
-          else
-            bluebuild build
-          fi
-        env:
-          BUILD_OPTS: ${{ steps.set_build_opts.outputs.build_opts }}
-
-      - name: Push image (explicitly pass build_opts)
-        shell: bash
-        run: |
-          if [ -n "${BUILD_OPTS:-}" ]; then
-            bluebuild push ${BUILD_OPTS}
-          else
-            bluebuild push
-          fi
-        env:
-          BUILD_OPTS: ${{ steps.set_build_opts.outputs.build_opts }}
