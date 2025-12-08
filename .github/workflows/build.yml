@@ -18,7 +18,7 @@ jobs:
           - recipe.yml
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Recreate cosign public key from secret at runtime
       - name: Provide cosign public key (from secret)
@@ -83,7 +83,7 @@ jobs:
           - recipe.yml
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # No cosign key steps here on purpose – this job runs without signing
       - name: Build Custom Image without signing (blue-build)
