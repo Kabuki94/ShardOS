@@ -58,7 +58,7 @@ jobs:
           fi
 
       - name: Build Custom Image (blue-build)
-        uses: blue-build/github-action@v1.10
+        uses: blue-build/github-action@v1.11
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
         with:
@@ -87,7 +87,7 @@ jobs:
 
       # No cosign key steps here on purpose – this job runs without signing
       - name: Build Custom Image without signing (blue-build)
-        uses: blue-build/github-action@v1.10
+        uses: blue-build/github-action@v1.11
         with:
           recipe: ${{ matrix.recipe }}
           registry_token: ${{ github.token }}
